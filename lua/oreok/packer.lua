@@ -342,6 +342,8 @@ return require('packer').startup(function(use)
         })
         vim.cmd([[nnoremap \ :Neotree reveal<cr>]])
     end
+
+
 }
 end)
 

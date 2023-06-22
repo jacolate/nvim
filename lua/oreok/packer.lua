@@ -49,6 +49,8 @@ return require('packer').startup(function(use)
 
         use ('feline-nvim/feline.nvim')
         use ("theprimeagen/harpoon")
+        use ("tpope/vim-commentary")
+        use ('ThePrimeagen/vim-be-good')
         use ("mbbill/undotree")
         use ("lervag/vimtex")
         use ('nvim-tree/nvim-web-devicons')

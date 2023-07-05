@@ -7,12 +7,14 @@ lsp.ensure_installed({
   'rust_analyzer',
   'eslint',
   'clangd',
+  "pylsp",
   'html',
   'cssls',
   'texlab',
   "svelte",
   "tailwindcss",
-  "astro"
+  "astro",
+  "gopls"
 })
 
 -- Fix Undefined global 'vim'

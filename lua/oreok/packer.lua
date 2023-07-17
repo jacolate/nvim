@@ -45,8 +45,8 @@ return require('packer').startup(function(use)
             run = function() vim.fn["mkdp#util#install"]() end,
         })
 
-        use({"prettier/vim-prettier", run = 'yarn install --frozen-lockfile --production'})
 
+        use ('sbdchd/neoformat')
         use ('feline-nvim/feline.nvim')
         use ("theprimeagen/harpoon")
         use ("tpope/vim-commentary")
@@ -78,7 +78,6 @@ return require('packer').startup(function(use)
                 {'rafamadriz/friendly-snippets'}, -- Optional
             }
         }
-
         use {
             "nvim-neo-tree/neo-tree.nvim",
             branch = "v2.x",
@@ -259,8 +258,8 @@ return require('packer').startup(function(use)
                                 filesystem = {
                                     filtered_items = {
                                         visible = false, -- when true, they will just be displayed differently than normal items
-                                        hide_dotfiles = true,
-                                        hide_gitignored = true,
+                                        hide_dotfiles = false,
+                                        hide_gitignored = false,
                                         hide_hidden = true, -- only works on Windows for hidden files/directories
                                         hide_by_name = {
                                             --"node_modules"

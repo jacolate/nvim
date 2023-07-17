@@ -5,9 +5,8 @@ lsp.preset("recommended")
 lsp.ensure_installed({
   'tsserver',
   'rust_analyzer',
-  'eslint',
   'clangd',
-  "pylsp",
+  "jedi_language_server",
   'html',
   'cssls',
   'texlab',

@@ -4,6 +4,7 @@ lsp.preset("recommended")
 
 lsp.ensure_installed({
   'tsserver',
+  'ansiblels',
   'rust_analyzer',
   'clangd',
   "jedi_language_server",
@@ -13,6 +14,7 @@ lsp.ensure_installed({
   "svelte",
   "tailwindcss",
   "astro",
+  "prosemd_lsp",
   "gopls"
 })
 

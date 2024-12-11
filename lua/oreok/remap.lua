@@ -8,6 +8,9 @@ vim.keymap.set("n", "N", "Nzzzv")
 
 vim.keymap.set("n", "<leader>f", vim.lsp.buf.format)
 
+vim.keymap.set('n', "<leader>tt", 'i\\footnote{\\url{}}<Esc>hi', {noremap = true})
+
+
 
 
 

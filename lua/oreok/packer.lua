@@ -8,9 +8,9 @@ return require('packer').startup(function(use)
     use 'wbthomason/packer.nvim'
 
     use {
-      'nvim-telescope/telescope.nvim', tag = '0.1.4',
-    -- or                            , branch = '0.1.x',
-      requires = { {'nvim-lua/plenary.nvim'} }
+        'nvim-telescope/telescope.nvim', tag = '0.1.4',
+        -- or                            , branch = '0.1.x',
+        requires = { {'nvim-lua/plenary.nvim'} }
     }
 
     use ({ 
@@ -48,7 +48,11 @@ return require('packer').startup(function(use)
 
         use ('sbdchd/neoformat')
         use ('feline-nvim/feline.nvim')
-        use ("theprimeagen/harpoon")
+        use {
+            "ThePrimeagen/harpoon",
+            branch = "harpoon2",
+            requires = { {"nvim-lua/plenary.nvim"} }
+        }
         use ("tpope/vim-commentary")
         use ('ThePrimeagen/vim-be-good')
         use ("mbbill/undotree")
@@ -56,6 +60,7 @@ return require('packer').startup(function(use)
         use ('nvim-tree/nvim-web-devicons')
         use ("christoomey/vim-tmux-navigator")
         use ("tpope/vim-fugitive")
+        use ("github/copilot.vim")
         use {
             'VonHeikemen/lsp-zero.nvim',
             branch = 'v1.x',
@@ -80,38 +85,33 @@ return require('packer').startup(function(use)
         }
         use {
             "nvim-neo-tree/neo-tree.nvim",
-            branch = "v2.x",
+            branch = "v3.x",
             requires = { 
                 "nvim-lua/plenary.nvim",
                 "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
                 "MunifTanjim/nui.nvim",
+                -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
                 {
-                    -- only needed if you want to use the commands with "_with_window_picker" suffix
                     's1n7ax/nvim-window-picker',
-                    tag = "v1.*",
+                    version = '2.*',
                     config = function()
-                        require'window-picker'.setup({
-                            autoselect_one = true,
-                            include_current = false,
+                        require 'window-picker'.setup({
                             filter_rules = {
+                                include_current_win = false,
+                                autoselect_one = true,
                                 -- filter using buffer options
                                 bo = {
                                     -- if the file type is one of following, the window will be ignored
                                     filetype = { 'neo-tree', "neo-tree-popup", "notify" },
-
                                     -- if the buffer type is one of following, the window will be ignored
                                     buftype = { 'terminal', "quickfix" },
                                 },
                             },
-                            other_win_hl_color = '#e35e4f',
                         })
                     end,
-                }
+                },
             },
             config = function ()
-                -- Unless you are still migrating, remove the deprecated commands from v1.x
-                vim.cmd([[ let g:neo_tree_remove_legacy_commands = 1 ]])
-
                 -- If you want icons for diagnostic errors, you'll need to define them somewhere:
                 vim.fn.sign_define("DiagnosticSignError",
                 {text = " ", texthl = "DiagnosticSignError"})
@@ -120,12 +120,20 @@ return require('packer').startup(function(use)
                 vim.fn.sign_define("DiagnosticSignInfo",
                 {text = " ", texthl = "DiagnosticSignInfo"})
                 vim.fn.sign_define("DiagnosticSignHint",
-                {text = "", texthl = "DiagnosticSignHint"})
-                -- NOTE: this is changed from v1.x, which used the old style of highlight groups
-                -- in the form "LspDiagnosticsSignWarning"
+                {text = "󰌵", texthl = "DiagnosticSignHint"})
 
                 require("neo-tree").setup({
                     close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab
+                    event_handlers = {
+                      {
+                        event = "neo_tree_popup_input_ready",
+                        ---@param args { bufnr: integer, winid: integer }
+                        handler = function(args)
+                          vim.cmd("stopinsert")
+                          vim.keymap.set("i", "<esc>", vim.cmd.stopinsert, { noremap = true, buffer = args.bufnr })
+                        end,
+                      }
+                    },
                     popup_border_style = "rounded",
                     enable_git_status = true,
                     enable_diagnostics = true,
@@ -160,7 +168,7 @@ return require('packer').startup(function(use)
                             icon = {
                                 folder_closed = "",
                                 folder_open = "",
-                                folder_empty = "ﰊ",
+                                folder_empty = "󰜌",
                                 -- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
                                 -- then these will never be used.
                                 default = "*",
@@ -181,19 +189,39 @@ return require('packer').startup(function(use)
                                     added     = "", -- or "✚", but this is redundant info if you use git_status_colors on the name
                                     modified  = "", -- or "", but this is redundant info if you use git_status_colors on the name
                                     deleted   = "✖",-- this can only be used in the git_status source
-                                    renamed   = "",-- this can only be used in the git_status source
+                                    renamed   = "󰁕",-- this can only be used in the git_status source
                                     -- Status type
                                     untracked = "",
                                     ignored   = "",
-                                    unstaged  = "",
+                                    unstaged  = "󰄱",
                                     staged    = "",
                                     conflict  = "",
                                 }
                             },
+                            -- If you don't want to use these columns, you can set `enabled = false` for each of them individually
+                            file_size = {
+                                enabled = true,
+                                required_width = 64, -- min width of window required to show this column
+                            },
+                            type = {
+                                enabled = true,
+                                required_width = 122, -- min width of window required to show this column
+                            },
+                            last_modified = {
+                                enabled = true,
+                                required_width = 88, -- min width of window required to show this column
+                            },
+                            created = {
+                                enabled = true,
+                                required_width = 110, -- min width of window required to show this column
+                            },
+                            symlink_target = {
+                                enabled = false,
+                            },
                         },
                         -- A list of functions, each representing a global custom command
                         -- that will be available in all sources (if not overridden in `opts[source_name].commands`)
-                        -- see `:h neo-tree-global-custom-commands`
+                        -- see `:h neo-tree-custom-commands-global`
                         commands = {},
                         window = {
                             position = "left",
@@ -209,8 +237,9 @@ return require('packer').startup(function(use)
                                 },
                                 ["<2-LeftMouse>"] = "open",
                                 ["<cr>"] = "open",
-                                ["<esc>"] = "revert_preview",
-                                ["P"] = { "toggle_preview", config = { use_float = true } },
+                                ["<esc>"] = "cancel", -- close preview or floating neo-tree window
+                                ["P"] = { "toggle_preview", config = { use_float = true, use_image_nvim = true } },
+                                -- Read `# Preview Mode` for more information
                                 ["l"] = "focus_preview",
                                 ["S"] = "open_split",
                                 ["s"] = "open_vsplit",
@@ -252,14 +281,15 @@ return require('packer').startup(function(use)
                                         ["?"] = "show_help",
                                         ["<"] = "prev_source",
                                         [">"] = "next_source",
+                                        ["i"] = "show_file_details",
                                     }
                                 },
                                 nesting_rules = {},
                                 filesystem = {
                                     filtered_items = {
                                         visible = false, -- when true, they will just be displayed differently than normal items
-                                        hide_dotfiles = false,
-                                        hide_gitignored = false,
+                                        hide_dotfiles = true,
+                                        hide_gitignored = true,
                                         hide_hidden = true, -- only works on Windows for hidden files/directories
                                         hide_by_name = {
                                             --"node_modules"
@@ -279,8 +309,11 @@ return require('packer').startup(function(use)
                             --".null-ls_*",
                         },
                     },
-                    follow_current_file = false, -- This will find and focus the file in the active buffer every
-                    -- time the current file is changed while the tree is open.
+                    follow_current_file = {
+                        enabled = false, -- This will find and focus the file in the active buffer every time
+                        --               -- the current file is changed while the tree is open.
+                        leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
+                    },
                     group_empty_dirs = false, -- when true, empty folders will be grouped together
                     hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
                     -- in whatever position is specified in window.position
@@ -302,20 +335,33 @@ return require('packer').startup(function(use)
                             ["<c-x>"] = "clear_filter",
                             ["[g"] = "prev_git_modified",
                             ["]g"] = "next_git_modified",
+                            ["o"] = { "show_help", nowait=false, config = { title = "Order by", prefix_key = "o" }},
+                            ["oc"] = { "order_by_created", nowait = false },
+                            ["od"] = { "order_by_diagnostics", nowait = false },
+                            ["og"] = { "order_by_git_status", nowait = false },
+                            ["om"] = { "order_by_modified", nowait = false },
+                            ["on"] = { "order_by_name", nowait = false },
+                            ["os"] = { "order_by_size", nowait = false },
+                            ["ot"] = { "order_by_type", nowait = false },
+                            -- ['<key>'] = function(state) ... end,
                         },
                         fuzzy_finder_mappings = { -- define keymaps for filter popup window in fuzzy_finder_mode
                         ["<down>"] = "move_cursor_down",
                         ["<C-n>"] = "move_cursor_down",
                         ["<up>"] = "move_cursor_up",
                         ["<C-p>"] = "move_cursor_up",
+                        -- ['<key>'] = function(state, scroll_padding) ... end,
                     },
                 },
 
                 commands = {} -- Add a custom command or override a global one using the same function name
             },
             buffers = {
-                follow_current_file = true, -- This will find and focus the file in the active buffer every
-                -- time the current file is changed while the tree is open.
+                follow_current_file = {
+                    enabled = true, -- This will find and focus the file in the active buffer every time
+                    --              -- the current file is changed while the tree is open.
+                    leave_dirs_open = false, -- `false` closes auto expanded dirs, such as with `:Neotree reveal`
+                },
                 group_empty_dirs = true, -- when true, empty folders will be grouped together
                 show_unloaded = true,
                 window = {
@@ -323,6 +369,13 @@ return require('packer').startup(function(use)
                         ["bd"] = "buffer_delete",
                         ["<bs>"] = "navigate_up",
                         ["."] = "set_root",
+                        ["o"] = { "show_help", nowait=false, config = { title = "Order by", prefix_key = "o" }},
+                        ["oc"] = { "order_by_created", nowait = false },
+                        ["od"] = { "order_by_diagnostics", nowait = false },
+                        ["om"] = { "order_by_modified", nowait = false },
+                        ["on"] = { "order_by_name", nowait = false },
+                        ["os"] = { "order_by_size", nowait = false },
+                        ["ot"] = { "order_by_type", nowait = false },
                     }
                 },
             },
@@ -337,14 +390,20 @@ return require('packer').startup(function(use)
                         ["gc"] = "git_commit",
                         ["gp"] = "git_push",
                         ["gg"] = "git_commit_and_push",
+                        ["o"] = { "show_help", nowait=false, config = { title = "Order by", prefix_key = "o" }},
+                        ["oc"] = { "order_by_created", nowait = false },
+                        ["od"] = { "order_by_diagnostics", nowait = false },
+                        ["om"] = { "order_by_modified", nowait = false },
+                        ["on"] = { "order_by_name", nowait = false },
+                        ["os"] = { "order_by_size", nowait = false },
+                        ["ot"] = { "order_by_type", nowait = false },
                     }
                 }
             }
         })
+
         vim.cmd([[nnoremap \ :Neotree reveal<cr>]])
     end
-
-
 }
 end)
 

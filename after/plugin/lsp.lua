@@ -3,7 +3,7 @@ local lsp = require("lsp-zero")
 lsp.preset("recommended")
 
 lsp.ensure_installed({
-  'tsserver',
+  'denols',
   'ansiblels',
   'rust_analyzer',
   'clangd',
@@ -15,7 +15,8 @@ lsp.ensure_installed({
   "tailwindcss",
   "astro",
   "prosemd_lsp",
-  "gopls"
+  "gopls",
+  "yamlls"
 })
 
 -- Fix Undefined global 'vim'
@@ -72,7 +73,35 @@ lsp.on_attach(function(client, bufnr)
   vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
 end)
 
-
+require('lspconfig').ansiblels.setup({
+    filetypes = {
+        "yaml",
+    },
+    settings = {
+        ansible = {
+            ansible = {
+                path = "ansible",
+                useFullyQualifiedCollectionNames = true
+            },
+            ansibleLint = {
+                enabled = true,
+                path = "ansible-lint"
+            },
+            executionEnvironment = {
+                enabled = false
+            },
+            python = {
+                interpreterPath = "python"
+            },
+            completion = {
+                provideRedirectModules = true,
+                provideModuleOptionAliases = true
+            }
+        },
+    },
+    on_attach = on_attach,
+    capabilities = capabilities
+})
 
 lsp.setup()
 
